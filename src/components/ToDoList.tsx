@@ -1,16 +1,33 @@
-import { useForm } from "react-hook-form";
-import { atom, useRecoilState } from "recoil";
-import styled from 'styled-components';
+import { useRecoilState, useRecoilValue } from "recoil";
+import CreateToDo from "./CreateToDo";
+import { categoryState, toDoSelector } from '../atoms';
+import ToDo from "./ToDo";
+import React from "react";
 
-const toDoState = atom<ITodoState[]>({
-    key: 'toDo',
-    default : [],
-})
 
-const Form = styled.form`
-display: flex;
-flex-direction: column;
-`
+function ToDoList() {
+    const toDos  = useRecoilValue(toDoSelector);
+    const [category, setCategory] = useRecoilState(categoryState);
+    const onInput = (event: React.FormEvent<HTMLSelectElement>) => {
+        setCategory(event.currentTarget.value as any)
+    };
+    return (
+        <div>
+            <h1>To Do List</h1>
+            <hr/> 
+            <select value={category} onInput={onInput}>
+                <option value="TO_DO">To Do</option>
+                <option value="DOING">Doing</option>
+                <option value="DONE">Done</option>
+            </select>
+            <CreateToDo />
+            { toDos?.map(toDo => <ToDo key={toDo.id} {...toDo} />)}
+        </div>
+    )
+}
+
+export default ToDoList;
+
 
 // interface ILoginForm {
 // email : string;
@@ -49,41 +66,3 @@ flex-direction: column;
 //         </div>
 //     )
 // }
-
-interface ITodoForm {
-    toDo: string;
-}
-
-interface ITodoState {
-    content : string;
-    category : "TO_DO" | 'DOING' | 'DONE' ;
-    id : number;
-}
-
-function ToDoList() {
-
-    const [todos, setTodos] = useRecoilState(toDoState);
-    const { register, handleSubmit, setValue } = useForm<ITodoForm>();
-    const handleValid = ({toDo}:ITodoForm) => {
-        console.log('add to do : ', toDo);
-        setTodos((oldToDos)=> [{ content:toDo, category:"TO_DO", id:Date.now(), }, ...oldToDos])
-        setValue("toDo", "")
-        console.log('todos : ', todos);
-    }
-    return(
-        <div>
-            <h1>To Do List</h1>
-            <hr/> 
-            <Form onSubmit={handleSubmit(handleValid)}>
-               <input {...register('toDo', {required:"Please write a To-Do"})} placeholder="Write a To-do" />
-               <button>Add</button> 
-            </Form>
-            <ul>
-                {todos.map(toDo => <li key={toDo.id}>{toDo.content}</li>)}
-            </ul>
-        </div>
-    )
-}
-
-
-export default ToDoList;
